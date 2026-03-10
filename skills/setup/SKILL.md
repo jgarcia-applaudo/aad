@@ -91,7 +91,7 @@ Before generating any file, check if the project config file already exists (bas
 - If `.github/hooks/` already exists — read existing hooks, merge without duplicating or overwriting
 - If `.github/instructions/*` already exist — list them, do not overwrite, ask whether to update
 
-In both cases: If `.github/workflows/*` already exist — do not touch existing ones.
+In both cases: If `.github/workflows/*` already exist — do not overwrite existing ones.
 
 ## Phase 2: User Confirmation
 
@@ -114,8 +114,7 @@ Files to be created:
   ✓ .claude/skills/[other relevant]/SKILL.md
   ✓ .claude/settings.json (new / merge with existing)
 
-  ✓ .github/workflows/ (CI/CD workflows)        ← only if .github/ exists
-  ? .github/workflows/ (generate CI/CD workflows?) ← only if .github/ does NOT exist
+  ? .github/workflows/ (generate CI/CD workflows?)
 
 Confirm installation?
 ```
@@ -137,8 +136,8 @@ Files to be created:
   ✓ .github/instructions/[other relevant].instructions.md
   ✓ .github/hooks/branch-protection.json (new / merge with existing)
   ✓ .github/hooks/auto-format.json (new / merge with existing)
-  ✓ .github/workflows/ (CI/CD workflows)        ← only if .github/ exists
-  ? .github/workflows/ (generate CI/CD workflows?) ← only if .github/ does NOT exist
+
+  ? .github/workflows/ (generate CI/CD workflows?)
 
 Confirm installation?
 ```
@@ -349,9 +348,11 @@ If `.github/hooks/` already has files, merge preserving existing hooks.
 
 ### 3.4 GitHub Workflows
 
-If `.github/` already exists in the project, **always generate** workflows in `.github/workflows/`. If `.github/` does not exist, ask the user whether to create it.
+**Always ask the user**: "Would you like me to generate GitHub Actions workflows for CI/CD (code quality, dependency audit, docs sync, PR review)?"
 
-If `.github/workflows/` already has files, **do not overwrite existing ones** — only create missing workflows.
+- If the user says **yes** → generate all workflows listed below in `.github/workflows/`
+- If the user says **no** → skip this step entirely
+- If `.github/workflows/` already has files, **do not overwrite existing ones** — only create missing workflows
 
 Generate these workflows, adapting all commands to the project's real stack:
 
