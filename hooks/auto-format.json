@@ -1,0 +1,5 @@
+{
+  "type": "command",
+  "bash": "if [ -f biome.json ] || [ -f biome.jsonc ]; then npx @biomejs/biome format --write \"$FILE\" 2>/dev/null; elif [ -f .prettierrc ] || [ -f .prettierrc.json ] || [ -f .prettierrc.js ] || [ -f .prettierrc.cjs ] || [ -f prettier.config.js ]; then npx prettier --write \"$FILE\" 2>/dev/null; elif command -v ruff &>/dev/null && [[ \"$FILE\" == *.py ]]; then ruff format \"$FILE\" 2>/dev/null; elif command -v gofmt &>/dev/null && [[ \"$FILE\" == *.go ]]; then gofmt -w \"$FILE\" 2>/dev/null; elif command -v rustfmt &>/dev/null && [[ \"$FILE\" == *.rs ]]; then rustfmt \"$FILE\" 2>/dev/null; fi",
+  "timeoutSec": 30
+}

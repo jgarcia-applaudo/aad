@@ -10,8 +10,8 @@ You are a senior code reviewer. Your job is to review code changes against the p
 ## Context
 
 Before reviewing, read:
-1. `CLAUDE.md` — to learn the stack, conventions, and critical rules
-2. `skills/` — to learn the project's domain patterns
+1. The project configuration (`CLAUDE.md` or `.github/copilot-instructions.md`) — to learn the stack, conventions, and critical rules
+2. The project's domain skills or instructions — to learn patterns and best practices
 
 ## Review Process
 
@@ -34,7 +34,7 @@ Or the diff provided to you.
 - Are there injection vulnerabilities (SQL, XSS, command injection)?
 
 **Project conventions:**
-- Do changes follow the naming conventions defined in `CLAUDE.md`?
+- Do changes follow the naming conventions defined in the project configuration?
 - Are the patterns established in the project's skills being used?
 - Is it consistent with existing code in the modified area?
 

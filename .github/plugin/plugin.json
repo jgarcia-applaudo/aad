@@ -1,0 +1,28 @@
+{
+  "name": "aad",
+  "description": "Applaudo Agentic Development — Plugin to configure GitHub Copilot as a development companion for any project, regardless of the stack.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Applaudo Studios"
+  },
+  "license": "MIT",
+  "keywords": [
+    "development",
+    "code-quality",
+    "pr-review",
+    "onboarding",
+    "workflow"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/init",
+    "./skills/code-quality",
+    "./skills/pr-review",
+    "./skills/pr-summary",
+    "./skills/onboard",
+    "./skills/ticket",
+    "./skills/docs-sync"
+  ]
+}

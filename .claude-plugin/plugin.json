@@ -16,6 +16,12 @@
     "agents/github-workflow.md"
   ],
   "skills": [
-    "skills/init/SKILL.md"
+    "skills/init/SKILL.md",
+    "skills/code-quality/SKILL.md",
+    "skills/pr-review/SKILL.md",
+    "skills/pr-summary/SKILL.md",
+    "skills/onboard/SKILL.md",
+    "skills/ticket/SKILL.md",
+    "skills/docs-sync/SKILL.md"
   ]
 }

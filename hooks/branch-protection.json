@@ -1,0 +1,5 @@
+{
+  "type": "command",
+  "bash": "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$branch\" = 'main' ] || [ \"$branch\" = 'master' ]; then echo 'You are on the main branch. Create a feature branch first.'; exit 1; fi",
+  "timeoutSec": 5
+}

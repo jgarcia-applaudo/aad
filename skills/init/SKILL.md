@@ -6,7 +6,26 @@ disable-model-invocation: true
 
 # AAD Init — Smart Project Configuration
 
-You are the AAD (Applaudo Agentic Development) plugin installer. Your job is to analyze the current project and generate all necessary configuration so that Claude Code works as an expert development companion for this specific project.
+You are the AAD (Applaudo Agentic Development) plugin installer. Your job is to analyze the current project and generate all necessary configuration so that the AI coding agent works as an expert development companion for this specific project.
+
+## Phase 0: Detect Agent
+
+Determine which AI coding agent is executing this skill:
+
+1. Check environment: If `INSIDE_CLAUDE_CODE=1` is set → **Claude Code**
+2. If not, ask the user: "Which agent are you using? (Claude Code / GitHub Copilot)"
+
+Store the result as AGENT_TYPE for use in all subsequent phases.
+
+### File path mapping
+
+Use these paths throughout Phases 1-4 based on the detected agent:
+
+| Concept             | Claude Code                  | GitHub Copilot                                          |
+|---------------------|------------------------------|---------------------------------------------------------|
+| Project config file | `CLAUDE.md`                  | `.github/copilot-instructions.md`                       |
+| Settings/hooks      | `.claude/settings.json`      | `.github/hooks/*.json`                                  |
+| Domain skills       | `.claude/skills/*/SKILL.md`  | `.github/instructions/*.instructions.md` (with applyTo) |
 
 ## Phase 1: Project Detection
 
@@ -25,9 +44,15 @@ Read the following files if they exist (do not fail if they don't):
 - `vite.config.*`, `webpack.config.*`, `next.config.*`, `nuxt.config.*`
 - `docker-compose.yml`, `Dockerfile`
 - `.env.example`
-- `CLAUDE.md`
-- `.claude/settings.json`
-- `.claude/skills/`
+
+Also scan for existing agent-specific files:
+
+- `CLAUDE.md` (Claude Code)
+- `.github/copilot-instructions.md` (Copilot)
+- `.claude/settings.json` (Claude Code)
+- `.github/hooks/` (Copilot)
+- `.claude/skills/` (Claude Code)
+- `.github/instructions/` (Copilot)
 
 ### 1.2 Scan project structure
 
@@ -52,16 +77,27 @@ From what was detected, determine:
 
 ### 1.4 Check existing files
 
-Before generating any file, check if it already exists:
+Before generating any file, check if the project config file already exists (based on AGENT_TYPE):
+
+**If Claude Code:**
 
 - If `CLAUDE.md` already exists — read it completely, preserve its content, and propose integrations without losing anything
 - If `.claude/settings.json` already exists — read it, merge hooks without duplicating or overwriting
 - If `.claude/skills/*` already exist — list them, do not overwrite, ask whether to update
-- If `.github/workflows/*` already exist — do not touch existing ones
+
+**If Copilot:**
+
+- If `.github/copilot-instructions.md` already exists — read it completely, preserve its content, and propose integrations without losing anything
+- If `.github/hooks/` already exists — read existing hooks, merge without duplicating or overwriting
+- If `.github/instructions/*` already exist — list them, do not overwrite, ask whether to update
+
+In both cases: If `.github/workflows/*` already exist — do not touch existing ones.
 
 ## Phase 2: User Confirmation
 
-Present a summary of what was detected:
+Present a summary of what was detected. Use the correct paths based on AGENT_TYPE:
+
+**If Claude Code:**
 
 ```
 Detected stack:
@@ -84,13 +120,42 @@ Files to be created:
 Confirm installation?
 ```
 
+**If Copilot:**
+
+```
+Detected stack:
+  Language: [detected]
+  Framework: [detected]
+  Testing: [detected]
+  Linter: [detected]
+  ...
+
+Files to be created:
+  ✓ .github/copilot-instructions.md (new / merge with existing)
+  ✓ .github/instructions/testing-patterns.instructions.md
+  ✓ .github/instructions/debugging.instructions.md
+  ✓ .github/instructions/[other relevant].instructions.md
+  ✓ .github/hooks/branch-protection.json (new / merge with existing)
+  ✓ .github/hooks/auto-format.json (new / merge with existing)
+
+  Optional:
+  ? .github/workflows/ (generate CI/CD workflows?)
+
+Confirm installation?
+```
+
 Only ask about what you could NOT infer. If everything is clear, request a simple confirmation.
 
 ## Phase 3: File Generation
 
-### 3.1 CLAUDE.md
+### 3.1 Project configuration file
 
-Generate a `CLAUDE.md` at the project root with the following sections:
+Generate the project configuration file at the path determined by AGENT_TYPE:
+
+- **Claude Code**: `CLAUDE.md` at the project root
+- **Copilot**: `.github/copilot-instructions.md`
+
+The content is the same for both agents:
 
 ```markdown
 # [Project Name]
@@ -111,30 +176,31 @@ Generate a `CLAUDE.md` at the project root with the following sections:
 [Stack-specific rules — e.g.: no `any` in TypeScript, error handling, etc.]
 ```
 
-If `CLAUDE.md` already exists, integrate missing sections without modifying existing content.
+If the configuration file already exists, integrate missing sections without modifying existing content.
 
 ### 3.2 Domain Skills
 
-Generate skills in `.claude/skills/` adapted to the project's real stack. Each skill must:
+Generate domain skills adapted to the project's real stack. The content is the same for both agents — only the file format and location differ.
 
-- Have a `SKILL.md` file with valid YAML frontmatter
+**Skills to generate based on detected stack:**
+
+| Skill                  | Generate when                      |
+|------------------------|------------------------------------|
+| `testing-patterns`     | Always — adapt to detected runner  |
+| `systematic-debugging` | Always — adapt to language & tools |
+| `ui-patterns`          | Frontend framework detected        |
+| `api-patterns`         | API/data layer detected            |
+| `form-patterns`        | Forms library detected             |
+| `state-patterns`       | State management detected          |
+| `db-patterns`          | Database / ORM detected            |
+
+Each skill must:
+
 - Contain instructions specific to the project's real technologies
 - Include patterns, anti-patterns, and examples based on existing code when possible
 - Reference the project's real tools and libraries
 
-**Skills to generate based on detected stack:**
-
-| Skill | Generate when |
-|-------|--------------|
-| `testing-patterns` | Always — adapt to detected test runner |
-| `systematic-debugging` | Always — adapt to language and tools |
-| `ui-patterns` | Frontend framework detected |
-| `api-patterns` | API/data layer detected |
-| `form-patterns` | Forms library detected |
-| `state-patterns` | State management detected |
-| `db-patterns` | Database / ORM detected |
-
-Each skill's frontmatter:
+**If Claude Code** — generate as `.claude/skills/[name]/SKILL.md`:
 
 ```yaml
 ---
@@ -143,9 +209,33 @@ description: [description specific to the project's stack]
 ---
 ```
 
-### 3.3 .claude/settings.json
+Followed by the skill content in Markdown.
 
-Generate hooks adapted to the project's real tooling:
+**If Copilot** — generate as `.github/instructions/[name].instructions.md`:
+
+```yaml
+---
+applyTo: "[glob pattern for relevant files]"
+---
+```
+
+Followed by the same skill content in Markdown.
+
+Use these `applyTo` patterns per skill type:
+
+| Skill                  | applyTo                                                              |
+|------------------------|----------------------------------------------------------------------|
+| `testing-patterns`     | `**/*.test.*,**/*.spec.*,**/test/**,**/tests/**,**/__tests__/**`     |
+| `systematic-debugging` | `**/*`                                                               |
+| `ui-patterns`          | `**/*.tsx,**/*.vue,**/*.svelte,**/components/**`                     |
+| `api-patterns`         | `**/api/**,**/routes/**,**/controllers/**,**/handlers/**`            |
+| `form-patterns`        | `**/*form*,**/*Form*`                                                |
+| `state-patterns`       | `**/store/**,**/stores/**,**/state/**`                               |
+| `db-patterns`          | `**/models/**,**/migrations/**,**/prisma/**,**/drizzle/**`           |
+
+### 3.3 Settings and Hooks
+
+**If Claude Code** — generate `.claude/settings.json`:
 
 ```json
 {
@@ -179,19 +269,44 @@ Generate hooks adapted to the project's real tooling:
 }
 ```
 
+If `.claude/settings.json` already exists, merge preserving existing hooks.
+
+**If Copilot** — generate separate JSON files in `.github/hooks/`:
+
+`branch-protection.json`:
+
+```json
+{
+  "type": "command",
+  "bash": "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$branch\" = 'main' ] || [ \"$branch\" = 'master' ]; then echo 'You are on the main branch. Create a feature branch first.'; exit 1; fi",
+  "timeoutSec": 5
+}
+```
+
+`auto-format.json`:
+
+```json
+{
+  "type": "command",
+  "bash": "[real project format command detected in Phase 1 — e.g.: npx prettier --write \"$FILE\" or ruff format \"$FILE\"]",
+  "timeoutSec": 30
+}
+```
+
+If `.github/hooks/` already has files, merge preserving existing hooks.
+
 Adapt hooks to real tooling:
+
 - **Formatter**: Prettier, Biome, Ruff, gofmt, rustfmt — whichever the project uses
 - **Linter**: ESLint, Biome, Ruff, golangci-lint — whichever the project uses
 - **Tests**: The real runner with the correct execution flag
 - **Type checking**: tsc, mypy, pyright — if applicable
 
-If `.claude/settings.json` already exists, merge preserving existing hooks.
-
 ### 3.4 GitHub Workflows (optional)
 
 Only if the user confirms, generate in `.github/workflows/`:
 
-- **PR Review** — Claude automatically reviews PRs on open/sync
+- **PR Review** — Automatically review PRs on open/sync
 - **Code Quality** — Weekly code quality sweep
 - **Dependency Audit** — Biweekly dependency audit
 - **Docs Sync** — Monthly documentation sync
@@ -200,7 +315,9 @@ Each workflow must use the project's real commands.
 
 ## Phase 4: Summary
 
-When finished, display:
+When finished, display the appropriate summary based on AGENT_TYPE:
+
+**If Claude Code:**
 
 ```
 AAD configured successfully:
@@ -223,4 +340,30 @@ Next steps:
   1. Review the generated files and adjust to your preferences
   2. Commit the .claude/ folder and CLAUDE.md
   3. Use /aad:onboard [task] to start working
+```
+
+**If Copilot:**
+
+```
+AAD configured successfully:
+
+  ✓ .github/copilot-instructions.md — [created/updated]
+  ✓ .github/hooks/branch-protection.json — [created/updated]
+  ✓ .github/hooks/auto-format.json — [created/updated]
+  ✓ .github/instructions/testing-patterns.instructions.md — created
+  ✓ .github/instructions/debugging.instructions.md — created
+  ✓ [other instructions created]
+
+Available skills:
+  code-quality  — Code quality analysis
+  pr-review     — PR review
+  pr-summary    — Generate PR summary
+  onboard       — Explore codebase for a task
+  ticket        — End-to-end ticket workflow
+  docs-sync     — Sync documentation
+
+Next steps:
+  1. Review the generated files and adjust to your preferences
+  2. Commit the .github/ folder
+  3. Use the onboard skill to start working
 ```
