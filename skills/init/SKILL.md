@@ -147,6 +147,8 @@ Only ask about what you could NOT infer. If everything is clear, request a simpl
 
 ## Phase 3: File Generation
 
+**CRITICAL**: All generated files must be portable. Never use absolute paths (e.g., `/Users/john/projects/...`). Use only relative paths or tool names without paths. Generated configuration must work on any machine that clones the repository.
+
 ### 3.1 Project configuration file
 
 Generate the project configuration file at the path determined by AGENT_TYPE:
@@ -256,7 +258,7 @@ Use these `applyTo` patterns per skill type:
         "hooks": [
           {
             "type": "command",
-            "command": "[real project format command — e.g.: npx prettier --write $FILE or ruff format $FILE]"
+            "command": "[real project format command — e.g.: npx prettier --write $FILE or ruff format $FILE]. IMPORTANT: Use only relative paths or no paths at all. Never use absolute paths — the settings file must be portable across machines."
           }
         ]
       }
