@@ -13,9 +13,8 @@
     "onboarding",
     "workflow"
   ],
-  "commands": "./commands/",
   "agents": [
-    "./agents/code-reviewer.md",
-    "./agents/github-workflow.md"
+    "./agents/code-reviewer.agent.md",
+    "./agents/github-workflow.agent.md"
   ]
 }

@@ -11,6 +11,7 @@ AAD analyzes your project's stack, conventions, and tooling, then generates tail
 | Type | Name | Description |
 |------|------|-------------|
 | Skill | `setup` | Detects your stack and generates all project configuration |
+| Skill | `workflows` | Generates GitHub Actions workflows (Claude Code or Copilot powered) |
 | Skill | `code-quality` | Runs a code quality analysis beyond what linters catch |
 | Skill | `pr-review` | Reviews a Pull Request with categorized findings |
 | Skill | `pr-summary` | Generates a structured PR summary |
@@ -20,7 +21,7 @@ AAD analyzes your project's stack, conventions, and tooling, then generates tail
 | Agent | `code-reviewer` | Senior code reviewer with structured output |
 | Agent | `github-workflow` | Git/GitHub conventions enforcer |
 
-> Claude Code also has these skills available as `/aad:*` slash commands for backward compatibility.
+> In Claude Code, skills are available as `/aad:*` slash commands (e.g., `/aad:setup`).
 
 ## Installation
 
@@ -99,6 +100,10 @@ Explore the codebase before starting a task. Reads relevant code, identifies fil
 
 Full workflow from ticket to PR. Creates a branch, implements changes, runs tests, and opens a PR. Accepts Jira/Linear IDs, GitHub Issue URLs, or plain descriptions.
 
+### `workflows`
+
+Generates GitHub Actions workflows powered by Claude Code or GitHub Copilot. Interactive flow — lets you choose engine, configure secrets, and select which workflows to generate.
+
 ### `code-quality`
 
 Analyzes your codebase for issues that linters miss: logic errors, missing error handling, security concerns, dead code, and more.
@@ -129,8 +134,7 @@ AAD includes hooks that activate automatically:
 | Feature | Claude Code | Copilot VS Code | Copilot CLI |
 |---------|-------------|-----------------|-------------|
 | Agents | Yes | Yes | Yes |
-| Skills | Yes | Yes | Yes |
-| Slash commands | Yes (`/aad:*`) | No | No |
+| Skills / Slash commands | Yes (`/aad:*`) | Yes | Yes |
 | Hooks (branch protection) | Yes | No | Yes |
 | Hooks (auto-format) | Yes | No | Yes |
 | Setup (dynamic generation) | Yes | Yes | Yes |
@@ -141,25 +145,20 @@ AAD includes hooks that activate automatically:
 aad/
 ├── .claude-plugin/
 │   ├── marketplace.json          # Claude Code marketplace registration
-│   └── plugin.json              # Claude Code plugin metadata
+│   └── plugin.json               # Claude Code plugin manifest
 ├── .github/
-│   └── plugin/
-│       └── plugin.json          # Copilot plugin metadata
+│   └── plugin.json               # GitHub Copilot plugin manifest
 ├── agents/
-│   ├── code-reviewer.md         # Shared — works in both agents
-│   └── github-workflow.md       # Shared — works in both agents
-├── skills/
-│   ├── setup/SKILL.md           # Shared — detects agent and adapts
-│   ├── code-quality/SKILL.md    # Shared
-│   ├── pr-review/SKILL.md       # Shared
-│   ├── pr-summary/SKILL.md      # Shared
-│   ├── onboard/SKILL.md         # Shared
-│   ├── ticket/SKILL.md          # Shared
-│   └── docs-sync/SKILL.md       # Shared
-├── commands/                     # Claude Code only (backward compat)
-├── hooks/                        # Copilot CLI only
-│   ├── branch-protection.json
-│   └── auto-format.json
-├── settings.json                 # Claude Code hooks
+│   ├── code-reviewer.agent.md    # Shared — works in both agents
+│   └── github-workflow.agent.md  # Shared — works in both agents
+├── skills/                       # Single source of truth for both agents
+│   ├── setup/SKILL.md            # Detects agent and adapts output
+│   ├── workflows/SKILL.md        # GitHub Actions generator
+│   ├── code-quality/SKILL.md
+│   ├── pr-review/SKILL.md
+│   ├── pr-summary/SKILL.md
+│   ├── onboard/SKILL.md
+│   ├── ticket/SKILL.md
+│   └── docs-sync/SKILL.md
 └── README.md
 ```

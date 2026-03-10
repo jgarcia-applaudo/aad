@@ -1,11 +1,14 @@
 ---
 name: workflows
 description: Generate GitHub Actions workflows powered by Claude Code or GitHub Copilot
+disable-model-invocation: true
 ---
 
 # AAD Workflows — GitHub Actions Generator
 
 You generate GitHub Actions workflows adapted to the current project's real stack and tools, powered by Claude Code or GitHub Copilot.
+
+**IMPORTANT**: This is an interactive flow. You MUST follow each phase in order and WAIT for the user's response before proceeding to the next phase. Do NOT generate any files until the user has made all their selections.
 
 ## Phase 1: Project Detection
 
@@ -42,7 +45,7 @@ Classify each as **new** (file doesn't exist) or **skip** (file already exists).
 
 ## Phase 2: Choose Engine
 
-Ask the user which engine to use:
+**STOP and ask the user.** Present this prompt and WAIT for their response:
 
 ```
 How should the GitHub Actions workflows be powered?
@@ -56,12 +59,14 @@ How should the GitHub Actions workflows be powered?
 Choose (1/2):
 ```
 
+Do NOT proceed until the user responds.
+
 ### If the user chooses "Claude Code":
 
 Before generating any workflows, fetch the latest documentation:
 
 1. Use web search to find the latest docs for `anthropics/claude-code-action` GitHub Action
-2. Present the user with a setup checklist:
+2. **STOP and present** the user with a setup checklist. WAIT for their response:
 
 ```
 Before I generate the workflows, configure your GitHub repo:
@@ -87,12 +92,11 @@ If the user says **yes** → proceed to Phase 3.
 ### If the user chooses "GitHub Copilot":
 
 1. Use web search to find the latest docs for GitHub Copilot code review in pull requests
-2. Present setup checklist with links found from docs
-3. Wait for user confirmation before proceeding
+2. **STOP and present** setup checklist with links found from docs. WAIT for user confirmation.
 
 ## Phase 3: Select Workflows
 
-Present the list of available workflows with their current status:
+**STOP and ask the user.** Present the list of available workflows and WAIT for their selection:
 
 ```
 Detected stack:
@@ -117,12 +121,13 @@ Which workflows do you want to generate? (e.g., "1,2,4" or "all new")
 - Show `[skip]` for workflows that already exist (cannot be selected)
 - The user picks which ones to generate by number, or "all new"
 - If ALL 4 already exist, inform the user and stop
+- Do NOT proceed until the user responds.
 
 ## Phase 4: Generate Workflows
 
-**CRITICAL**: All generated files must be portable. Never use absolute paths. Use the project's REAL commands, package manager, and runtime.
+**Only now generate files.** Generate only the workflows the user selected. Output to `.github/workflows/[name].yml`.
 
-Generate only the workflows the user selected. Output to `.github/workflows/[name].yml`.
+**CRITICAL**: All generated files must be portable. Never use absolute paths. Use the project's REAL commands, package manager, and runtime.
 
 ### Claude Code Engine
 
