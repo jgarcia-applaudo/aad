@@ -99,7 +99,7 @@ Present a summary of what was detected. Use the correct paths based on AGENT_TYP
 
 **If Claude Code:**
 
-```
+```text
 Detected stack:
   Language: [detected]
   Framework: [detected]
@@ -114,15 +114,15 @@ Files to be created:
   ✓ .claude/skills/[other relevant]/SKILL.md
   ✓ .claude/settings.json (new / merge with existing)
 
-  Optional:
-  ? .github/workflows/ (generate CI/CD workflows?)
+  ✓ .github/workflows/ (CI/CD workflows)        ← only if .github/ exists
+  ? .github/workflows/ (generate CI/CD workflows?) ← only if .github/ does NOT exist
 
 Confirm installation?
 ```
 
 **If Copilot:**
 
-```
+```text
 Detected stack:
   Language: [detected]
   Framework: [detected]
@@ -137,9 +137,8 @@ Files to be created:
   ✓ .github/instructions/[other relevant].instructions.md
   ✓ .github/hooks/branch-protection.json (new / merge with existing)
   ✓ .github/hooks/auto-format.json (new / merge with existing)
-
-  Optional:
-  ? .github/workflows/ (generate CI/CD workflows?)
+  ✓ .github/workflows/ (CI/CD workflows)        ← only if .github/ exists
+  ? .github/workflows/ (generate CI/CD workflows?) ← only if .github/ does NOT exist
 
 Confirm installation?
 ```
@@ -302,16 +301,18 @@ Adapt hooks to real tooling:
 - **Tests**: The real runner with the correct execution flag
 - **Type checking**: tsc, mypy, pyright — if applicable
 
-### 3.4 GitHub Workflows (optional)
+### 3.4 GitHub Workflows
 
-Only if the user confirms, generate in `.github/workflows/`:
+If `.github/` already exists in the project, **always generate** workflows in `.github/workflows/`. If `.github/` does not exist, ask the user whether to create it.
+
+Generate these workflows:
 
 - **PR Review** — Automatically review PRs on open/sync
 - **Code Quality** — Weekly code quality sweep
 - **Dependency Audit** — Biweekly dependency audit
 - **Docs Sync** — Monthly documentation sync
 
-Each workflow must use the project's real commands.
+Each workflow must use the project's real commands. If `.github/workflows/` already has files, do not overwrite existing ones.
 
 ## Phase 4: Summary
 
@@ -319,7 +320,7 @@ When finished, display the appropriate summary based on AGENT_TYPE:
 
 **If Claude Code:**
 
-```
+```text
 AAD configured successfully:
 
   ✓ CLAUDE.md — [created/updated]
@@ -344,7 +345,7 @@ Next steps:
 
 **If Copilot:**
 
-```
+```text
 AAD configured successfully:
 
   ✓ .github/copilot-instructions.md — [created/updated]
