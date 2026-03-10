@@ -126,6 +126,7 @@ Files to be created:
   ✓ .claude/skills/testing-patterns/SKILL.md
   ✓ .claude/skills/debugging/SKILL.md
   ✓ .claude/skills/[other relevant]/SKILL.md
+  ✓ .claude/.gitignore
   ✓ .claude/settings.json (new / merge with existing)
 
 GitHub workflows:
@@ -254,6 +255,18 @@ Use these `applyTo` patterns per skill type:
 | `form-patterns`        | `**/*form*,**/*Form*`                                                |
 | `state-patterns`       | `**/store/**,**/stores/**,**/state/**`                               |
 | `db-patterns`          | `**/models/**,**/migrations/**,**/prisma/**,**/drizzle/**`           |
+
+### 3.2.1 Claude Code .gitignore
+
+**If Claude Code** — generate `.claude/.gitignore` to exclude local-only files from version control:
+
+```gitignore
+settings.local.json
+user-team-info.json
+tasks/
+```
+
+If `.claude/.gitignore` already exists, do not overwrite it.
 
 ### 3.3 Settings and Hooks
 
