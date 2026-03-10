@@ -1,0 +1,30 @@
+{
+  "env": {
+    "INSIDE_CLAUDE_CODE": "1"
+  },
+  "bashTimeout": 420000,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check if the current git branch is main or master. If it is, respond with a JSON { \"decision\": \"block\", \"reason\": \"Direct edits on main/master are not allowed. Create a feature branch first.\" }. If it is not main/master, respond with { \"decision\": \"allow\" }."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // .path // empty') && if [ -z \"$FILE\" ] || [ ! -f \"$FILE\" ]; then exit 0; fi && EXT=\"${FILE##*.}\" && case \"$EXT\" in js|jsx|ts|tsx|mjs|cjs) if command -v npx >/dev/null 2>&1; then if [ -f biome.json ] || [ -f biome.jsonc ]; then npx biome format --write \"$FILE\" 2>/dev/null; elif [ -f .prettierrc ] || [ -f .prettierrc.json ] || [ -f .prettierrc.js ] || [ -f .prettierrc.yml ] || [ -f prettier.config.js ]; then npx prettier --write \"$FILE\" 2>/dev/null; fi; fi ;; py) if command -v ruff >/dev/null 2>&1; then ruff format \"$FILE\" 2>/dev/null; elif command -v black >/dev/null 2>&1; then black \"$FILE\" 2>/dev/null; fi ;; go) command -v gofmt >/dev/null 2>&1 && gofmt -w \"$FILE\" 2>/dev/null ;; rs) command -v rustfmt >/dev/null 2>&1 && rustfmt \"$FILE\" 2>/dev/null ;; esac || true"
+          }
+        ]
+      }
+    ]
+  }
+}

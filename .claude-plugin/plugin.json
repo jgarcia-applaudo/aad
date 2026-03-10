@@ -1,0 +1,21 @@
+{
+  "name": "aad",
+  "description": "Applaudo Agentic Development — Plugin to configure Claude Code as a development companion for any project, regardless of the stack.",
+  "version": "1.0.0",
+  "author": "Applaudo Studios",
+  "commands": [
+    "commands/code-quality.md",
+    "commands/pr-review.md",
+    "commands/pr-summary.md",
+    "commands/onboard.md",
+    "commands/ticket.md",
+    "commands/docs-sync.md"
+  ],
+  "agents": [
+    "agents/code-reviewer.md",
+    "agents/github-workflow.md"
+  ],
+  "skills": [
+    "skills/init/SKILL.md"
+  ]
+}
