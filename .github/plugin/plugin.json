@@ -13,16 +13,9 @@
     "onboarding",
     "workflow"
   ],
+  "commands": "./commands/",
   "agents": [
-    "./agents"
-  ],
-  "skills": [
-    "./skills/setup",
-    "./skills/code-quality",
-    "./skills/pr-review",
-    "./skills/pr-summary",
-    "./skills/onboard",
-    "./skills/ticket",
-    "./skills/docs-sync"
+    "./agents/code-reviewer.md",
+    "./agents/github-workflow.md"
   ]
 }
