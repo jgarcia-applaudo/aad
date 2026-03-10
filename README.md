@@ -57,6 +57,14 @@ Or if published to a marketplace repository:
 copilot plugin install aad@applaudo/aad
 ```
 
+### Update
+
+```bash
+cd ~/.local/share/agent-plugins/aad && git pull
+```
+
+Agents and skills take effect immediately — no reinstall needed. If the `init` skill was updated, re-run it in your project to regenerate configuration files (existing settings are preserved and merged).
+
 ### Initialize in your project
 
 Navigate to your project and run the init skill:
@@ -154,7 +162,3 @@ aad/
 ├── settings.json                 # Claude Code hooks
 └── README.md
 ```
-
-## License
-
-MIT — Applaudo Studios
