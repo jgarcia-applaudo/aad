@@ -1,5 +1,5 @@
 ---
-name: init
+name: setup
 description: Initialize Applaudo Agentic Development configuration in the current project
 disable-model-invocation: true
 ---

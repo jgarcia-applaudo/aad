@@ -10,7 +10,7 @@ AAD analyzes your project's stack, conventions, and tooling, then generates tail
 
 | Type | Name | Description |
 |------|------|-------------|
-| Skill | `init` | Detects your stack and generates all project configuration |
+| Skill | `setup` | Detects your stack and generates all project configuration |
 | Skill | `code-quality` | Runs a code quality analysis beyond what linters catch |
 | Skill | `pr-review` | Reviews a Pull Request with categorized findings |
 | Skill | `pr-summary` | Generates a structured PR summary |
@@ -63,14 +63,14 @@ copilot plugin install aad@applaudo/aad
 cd ~/.local/share/agent-plugins/aad && git pull
 ```
 
-Agents and skills take effect immediately — no reinstall needed. If the `init` skill was updated, re-run it in your project to regenerate configuration files (existing settings are preserved and merged).
+Agents and skills take effect immediately — no reinstall needed. If the `setup` skill was updated, re-run it in your project to regenerate configuration files (existing settings are preserved and merged).
 
 ### Initialize in your project
 
-Navigate to your project and run the init skill:
+Navigate to your project and run the setup skill:
 
-- **Claude Code**: `/aad:init`
-- **Copilot**: Use the `init` skill from the AAD plugin in chat
+- **Claude Code**: `/aad:setup`
+- **Copilot**: Use the `setup` skill from the AAD plugin in chat
 
 This will:
 
@@ -87,7 +87,7 @@ This will:
 
 ## Usage
 
-### `init`
+### `setup`
 
 Run once per project. Analyzes your stack and generates all configuration files.
 
@@ -133,7 +133,7 @@ AAD includes hooks that activate automatically:
 | Slash commands | Yes (`/aad:*`) | No | No |
 | Hooks (branch protection) | Yes | No | Yes |
 | Hooks (auto-format) | Yes | No | Yes |
-| Init (dynamic generation) | Yes | Yes | Yes |
+| Setup (dynamic generation) | Yes | Yes | Yes |
 
 ## Project Structure
 
@@ -149,7 +149,7 @@ aad/
 │   ├── code-reviewer.md         # Shared — works in both agents
 │   └── github-workflow.md       # Shared — works in both agents
 ├── skills/
-│   ├── init/SKILL.md            # Shared — detects agent and adapts
+│   ├── setup/SKILL.md           # Shared — detects agent and adapts
 │   ├── code-quality/SKILL.md    # Shared
 │   ├── pr-review/SKILL.md       # Shared
 │   ├── pr-summary/SKILL.md      # Shared

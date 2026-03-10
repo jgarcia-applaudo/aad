@@ -17,7 +17,7 @@
     "./agents"
   ],
   "skills": [
-    "./skills/init",
+    "./skills/setup",
     "./skills/code-quality",
     "./skills/pr-review",
     "./skills/pr-summary",
