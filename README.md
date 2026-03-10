@@ -24,27 +24,29 @@ AAD analyzes your project's stack, conventions, and tooling, then generates tail
 
 ## Installation
 
-### Claude Code
+Clone the repo to a shared location:
 
 ```bash
-git clone https://github.com/jgarcia-applaudo/aad.git ~/.claude/plugins/aad
+git clone https://github.com/jgarcia-applaudo/aad.git ~/.local/share/agent-plugins/aad
 ```
 
-Then inside Claude Code:
+### Claude Code
+
+Inside Claude Code:
 
 ```
-/plugin marketplace add ~/.claude/plugins/aad
+/plugin marketplace add ~/.local/share/agent-plugins/aad
 /plugin install aad
 ```
 
 ### GitHub Copilot (VS Code)
 
-Register the plugin locally in your VS Code settings:
+Register the plugin in your VS Code settings:
 
 ```json
 {
   "chat.plugins.paths": {
-    "/path/to/aad": true
+    "~/.local/share/agent-plugins/aad": true
   }
 }
 ```
