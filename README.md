@@ -26,14 +26,17 @@ AAD analyzes your project's stack, conventions, and tooling, then generates tail
 
 ### Install the plugin
 
+Clone the private repo:
+
 ```bash
-claude plugin add applaudo/aad
+git clone https://github.com/jgarcia-applaudo/aad.git ~/.claude/plugins/aad
 ```
 
-Or clone manually:
+Then inside Claude Code, register it as a local marketplace and install:
 
-```bash
-git clone https://github.com/anthropics/aad.git ~/.claude/plugins/aad
+```
+/plugin marketplace add ~/.claude/plugins/aad
+/plugin install aad
 ```
 
 ### Initialize in your project
