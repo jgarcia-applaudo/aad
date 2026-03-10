@@ -1,9 +1,14 @@
 {
-  "name": "Applaudo Agentic Development",
+  "name": "applaudo-agentic-development",
+  "owner": {
+    "name": "Applaudo Studios"
+  },
   "plugins": [
     {
       "name": "aad",
-      "path": "."
+      "source": ".",
+      "description": "Configures your AI coding agent as a development companion for any project, regardless of the stack.",
+      "version": "1.0.0"
     }
   ]
 }
