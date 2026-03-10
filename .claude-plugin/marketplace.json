@@ -1,0 +1,9 @@
+{
+  "name": "Applaudo Agentic Development",
+  "plugins": [
+    {
+      "name": "aad",
+      "path": "."
+    }
+  ]
+}
