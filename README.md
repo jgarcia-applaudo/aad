@@ -34,7 +34,7 @@ git clone https://github.com/jgarcia-applaudo/aad.git ~/.local/share/agent-plugi
 
 Inside Claude Code:
 
-```
+```bash
 /plugin marketplace add ~/.local/share/agent-plugins/aad
 /plugin install aad
 ```
@@ -53,7 +53,7 @@ Register the plugin in your VS Code settings:
 
 Or if published to a marketplace repository:
 
-```
+```bash
 copilot plugin install aad@applaudo/aad
 ```
 
@@ -137,9 +137,10 @@ AAD includes hooks that activate automatically:
 
 ## Project Structure
 
-```
+```text
 aad/
 ├── .claude-plugin/
+│   ├── marketplace.json          # Claude Code marketplace registration
 │   └── plugin.json              # Claude Code plugin metadata
 ├── .github/
 │   └── plugin/
