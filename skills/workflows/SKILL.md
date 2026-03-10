@@ -266,14 +266,37 @@ If the user chose "Full pipeline" scope, also generate:
 
 ## Phase 6: Summary
 
+When finished, display a summary table showing ALL available workflows — both generated and not generated — with a clear reason for each:
+
 ```
-Workflows generated ([platform], [engine] mode):
+AAD Workflows Summary ([platform], [engine] mode)
 
-  ✓ pr-review — created
-  ✓ code-quality — created
-  — dependency-audit — already existed, skipped
-  ✓ docs-sync — created
+| Workflow          | Status    | File                                    | Reason                                      |
+|-------------------|-----------|-----------------------------------------|----------------------------------------------|
+| PR Review         | ✓ Created | .github/workflows/pr-review.yml         |                                              |
+| Code Quality      | ✓ Created | .github/workflows/code-quality.yml      |                                              |
+| Dependency Audit  | — Skipped | .github/workflows/dependency-audit.yml  | Already exists                               |
+| Docs Sync         | — Skipped | —                                       | User declined workflow generation             |
+| Build & Test      | — Skipped | —                                       | Already covered by azure-pipelines.yml        |
+| Deploy            | — Skipped | —                                       | Scope: quality gates only (no deploy)         |
+```
 
+**Status values:**
+- `✓ Created` — file was generated
+- `✓ Updated` — existing file was merged/updated
+- `— Skipped` — not generated, with reason
+
+**Common skip reasons** (use the one that applies):
+- `Already exists` — file already present, not overwritten
+- `Already covered by [existing-file]` — existing CI/CD already handles this
+- `User declined workflow generation` — user said no
+- `Scope: quality gates only (no deploy)` — user chose quality gates scope
+- `Not applicable for [platform]` — workflow not supported on chosen platform
+- `Copilot handles this natively` — Copilot mode replaces this workflow
+
+Then show next steps:
+
+```
 Next steps:
   1. Review the generated workflows
   2. Commit the workflow files
