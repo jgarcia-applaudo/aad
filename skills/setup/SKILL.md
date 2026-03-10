@@ -347,16 +347,11 @@ If `.claude/settings.json` already exists, merge preserving existing hooks.
 
 If `.github/hooks/` already has files, merge preserving existing hooks.
 
-### 3.4 GitHub Workflows (MANDATORY)
+### 3.4 GitHub Workflows
 
-**CRITICAL — DO NOT SKIP THIS STEP.**
+If `.github/` already exists in the project, **always generate** workflows in `.github/workflows/`. If `.github/` does not exist, ask the user whether to create it.
 
-1. Check if `.github/` directory exists in the project root.
-2. If it exists → **you MUST generate** all workflows listed below in `.github/workflows/`. This is NOT optional.
-3. If it does NOT exist → ask the user: "No .github/ directory found. Should I create GitHub workflows?"
-4. If `.github/workflows/` already has files, **do not overwrite existing ones** — only create missing workflows.
-
-**You MUST complete this step before moving to Phase 4.**
+If `.github/workflows/` already has files, **do not overwrite existing ones** — only create missing workflows.
 
 Generate these workflows, adapting all commands to the project's real stack:
 
