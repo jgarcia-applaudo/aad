@@ -403,9 +403,11 @@ Available skills:
   onboard       — Explore codebase for a task
   ticket        — End-to-end ticket workflow
   docs-sync     — Sync documentation
+  workflows     — Generate GitHub Actions agentic workflows
 
 Next steps:
   1. Review the generated files and adjust to your preferences
   2. Commit the .github/ folder
-  3. Use the onboard skill to start working
+  3. Run the workflows skill to generate CI/CD agentic workflows
+  4. Use the onboard skill to start working
 ```

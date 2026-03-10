@@ -102,7 +102,7 @@ Full workflow from ticket to PR. Creates a branch, implements changes, runs test
 
 ### `workflows`
 
-Generates GitHub Actions workflows powered by Claude Code or GitHub Copilot. Interactive flow — lets you choose engine, configure secrets, and select which workflows to generate.
+Generates GitHub Actions workflows. Choose between Claude Code (`anthropics/claude-code-action`) or GitHub Copilot (`gh-aw` agentic workflows in Markdown). Interactive flow — lets you choose engine, configure secrets, and select which workflows to generate.
 
 ### `code-quality`
 
