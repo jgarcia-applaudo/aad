@@ -1,11 +1,11 @@
 ---
 name: workflows
-description: Generate CI/CD workflows adapted to the project's stack and platform
+description: Generate GitHub Actions workflows powered by Claude Code or GitHub Copilot
 ---
 
-# AAD Workflows — CI/CD Generator
+# AAD Workflows — GitHub Actions Generator
 
-You generate CI/CD workflows adapted to the current project's real stack, platform, and tools.
+You generate GitHub Actions workflows adapted to the current project's real stack and tools, powered by Claude Code or GitHub Copilot.
 
 ## Phase 1: Project Detection
 
@@ -30,29 +30,69 @@ From what was detected, determine:
 - **Test runner** (Jest, Vitest, Pytest, Go test, etc.)
 - **Key commands** (build, test, lint, format — extract from scripts or config)
 
-### 1.2 Detect existing CI/CD
+### 1.2 Check existing workflows
 
-Scan the project root for existing CI/CD configuration:
+Check which of the 4 standard workflow files already exist in `.github/workflows/`:
+- `pr-review.yml`
+- `code-quality.yml`
+- `dependency-audit.yml`
+- `docs-sync.yml`
 
-| Platform | Files to check |
-|----------|---------------|
-| GitHub Actions | `.github/workflows/*.yml` |
-| Azure Pipelines | `azure-pipelines.yml`, `.azure-pipelines/`, `azure-pipelines/*.yml` |
-| GitLab CI | `.gitlab-ci.yml` |
-| CircleCI | `.circleci/config.yml` |
-| Jenkins | `Jenkinsfile` |
-| Bitbucket Pipelines | `bitbucket-pipelines.yml` |
-| AWS CodePipeline | `buildspec.yml` |
-| Travis CI | `.travis.yml` |
+Classify each as **new** (file doesn't exist) or **skip** (file already exists).
 
-For each platform found, read the existing config files and note:
-- What stages/jobs already exist (build, test, lint, deploy, etc.)
-- What triggers are configured (PR, push, schedule, manual)
-- What tools are already being run
+## Phase 2: Choose Engine
 
-## Phase 2: Present Findings & Ask User
+Ask the user which engine to use:
 
-Present what was detected:
+```
+How should the GitHub Actions workflows be powered?
+
+  1. Claude Code — Uses anthropics/claude-code-action for AI-powered review and fixes.
+     Requires: ANTHROPIC_API_KEY secret in your GitHub repo.
+
+  2. GitHub Copilot — Uses Copilot code review on PRs.
+     Requires: Copilot enabled for your organization/repo.
+
+Choose (1/2):
+```
+
+### If the user chooses "Claude Code":
+
+Before generating any workflows, fetch the latest documentation:
+
+1. Use web search to find the latest docs for `anthropics/claude-code-action` GitHub Action
+2. Present the user with a setup checklist:
+
+```
+Before I generate the workflows, configure your GitHub repo:
+
+  1. Go to: https://github.com/[owner]/[repo]/settings/secrets/actions
+  2. Add a new repository secret:
+     Name: ANTHROPIC_API_KEY
+     Value: Your Anthropic API key (get one at https://console.anthropic.com/)
+
+  3. Go to: https://github.com/[owner]/[repo]/settings/actions
+  4. Under "Workflow permissions", enable:
+     ✓ Read and write permissions
+     ✓ Allow GitHub Actions to create and approve pull requests
+
+  Docs: [URL found from web search]
+
+Have you completed the setup? (yes/no)
+```
+
+If the user says **no** → remind them to complete setup and stop.
+If the user says **yes** → proceed to Phase 3.
+
+### If the user chooses "GitHub Copilot":
+
+1. Use web search to find the latest docs for GitHub Copilot code review in pull requests
+2. Present setup checklist with links found from docs
+3. Wait for user confirmation before proceeding
+
+## Phase 3: Select Workflows
+
+Present the list of available workflows with their current status:
 
 ```
 Detected stack:
@@ -62,243 +102,120 @@ Detected stack:
   Formatter: [detected]
   Test runner: [detected]
 
-Existing CI/CD:
-  ✓ Azure Pipelines (azure-pipelines.yml)
-    - Stages: build, test, deploy
-    - Triggers: PR to main, push to main
-  ✓ GitHub Actions (.github/workflows/)
-    - 2 existing workflows: ci.yml, deploy.yml
+Engine: [Claude Code / GitHub Copilot]
 
-  (or: No CI/CD configuration found)
+Available workflows:
+  1. [new]  PR Review         — AI-powered code review on pull requests
+  2. [new]  Code Quality      — Weekly code quality sweep
+  3. [skip] Dependency Audit  — Biweekly dependency audit (already exists)
+  4. [new]  Docs Sync         — Monthly documentation sync check
+
+Which workflows do you want to generate? (e.g., "1,2,4" or "all new")
 ```
 
-Then ask the user TWO questions:
+- Show `[new]` for workflows that don't exist yet
+- Show `[skip]` for workflows that already exist (cannot be selected)
+- The user picks which ones to generate by number, or "all new"
+- If ALL 4 already exist, inform the user and stop
 
-### Question 1: Platform
-
-```
-Which CI/CD platform do you want to generate workflows for?
-
-  1. GitHub Actions
-  2. Azure Pipelines
-  3. GitLab CI
-  4. [other detected platform]
-
-(Your project already uses Azure Pipelines — generating GitHub Actions
-workflows would create a parallel CI/CD setup. Choose carefully.)
-```
-
-If the project already has CI/CD, warn about potential duplication.
-
-### Question 2: Scope
-
-```
-What type of workflows do you want to generate?
-
-  1. Quality gates — Complementary checks (lint, format, security audit, docs sync)
-     These run alongside your existing CI/CD without replacing it.
-
-  2. Full pipeline — Complete CI/CD pipeline (build, test, lint, deploy)
-     This would replace or duplicate your existing pipeline.
-
-  3. Custom — Let me describe what I want.
-```
-
-If the project already has a full pipeline (build + test + deploy), recommend option 1 (quality gates) to avoid duplication.
-
-## Phase 3: Choose Workflow Engine
-
-Ask the user how they want the workflows powered:
-
-```
-How should the workflows be powered?
-
-  1. Standard — Uses your project's native tools (linters, formatters, test runners)
-     No API keys needed. Workflows run your real commands directly.
-
-  2. Claude Code — Uses anthropics/claude-code-action for AI-powered review and fixes.
-     Requires: ANTHROPIC_API_KEY secret in your CI/CD platform.
-
-  3. GitHub Copilot — Uses Copilot code review on PRs.
-     Requires: Copilot enabled for your organization/repo.
-     (Only available with GitHub Actions)
-```
-
-Note: Option 3 (Copilot) is only available if the user chose GitHub Actions in Phase 2.
-
-### If the user chooses "Claude Code" (option 2):
-
-Before generating any workflows, fetch the latest documentation:
-
-1. Use web search to find the latest docs for `anthropics/claude-code-action` GitHub Action
-2. Present the user with a setup checklist appropriate for their chosen platform:
-
-**For GitHub Actions:**
-```
-Before I generate the workflows, configure your GitHub repo:
-
-  1. Go to: https://github.com/[owner]/[repo]/settings/secrets/actions
-  2. Add secret: ANTHROPIC_API_KEY (get one at https://console.anthropic.com/)
-  3. Go to: https://github.com/[owner]/[repo]/settings/actions
-  4. Enable: Read and write permissions + Allow creating PRs
-
-Have you completed the setup? (yes/no)
-```
-
-**For Azure Pipelines:**
-```
-Before I generate the pipelines, configure your Azure DevOps project:
-
-  1. Go to: Project Settings → Service connections or Pipelines → Library
-  2. Add a variable group or secret variable: ANTHROPIC_API_KEY
-  3. Ensure the pipeline has permissions to create work items/PRs
-
-Have you completed the setup? (yes/no)
-```
-
-Adapt the checklist for the chosen platform.
-
-If the user says **no** → remind them to complete setup and stop.
-If the user says **yes** → proceed to Phase 4.
-
-### If the user chooses "GitHub Copilot" (option 3):
-
-1. Use web search to find the latest docs for GitHub Copilot code review in pull requests
-2. Present setup checklist with links found from docs
-3. Wait for user confirmation before proceeding
-
-### If the user chooses "Standard" (option 1):
-
-Proceed directly to Phase 4. No additional setup needed.
-
-## Phase 4: Check Existing Workflows & Confirm
-
-Based on the chosen platform and scope, check which workflow files already exist.
-
-**Quality gates** (4 standard workflows):
-
-| Workflow | GitHub Actions | Azure Pipelines | GitLab CI |
-|----------|---------------|-----------------|-----------|
-| PR Review | `pr-review.yml` | stage in pipeline or separate YAML | job in `.gitlab-ci.yml` |
-| Code Quality | `code-quality.yml` | scheduled pipeline | scheduled pipeline |
-| Dependency Audit | `dependency-audit.yml` | scheduled pipeline | scheduled pipeline |
-| Docs Sync | `docs-sync.yml` | scheduled pipeline | scheduled pipeline |
-
-Classify each as **new** or **skip** (already exists).
-
-Present the plan:
-
-```
-Workflows to generate ([platform], [engine] mode):
-
-  ✓ pr-review (new)
-  ✓ code-quality (new)
-  — dependency-audit (already exists, skip)
-  ✓ docs-sync (new)
-
-Generate the [N] new workflows? (yes/no)
-```
-
-- If ALL already exist, inform the user and stop
-- If the user says **no** → stop
-
-## Phase 5: Generate Workflows
+## Phase 4: Generate Workflows
 
 **CRITICAL**: All generated files must be portable. Never use absolute paths. Use the project's REAL commands, package manager, and runtime.
 
-Generate only the workflows classified as **new** (do NOT overwrite existing files).
+Generate only the workflows the user selected. Output to `.github/workflows/[name].yml`.
 
-Adapt the output format to the chosen platform:
+### Claude Code Engine
 
-- **GitHub Actions** → `.github/workflows/[name].yml`
-- **Azure Pipelines** → YAML pipeline files (ask user where to place them)
-- **GitLab CI** → Jobs in `.gitlab-ci.yml` (merge with existing if present)
-- **Other** → Adapt to the platform's native config format
+Use `anthropics/claude-code-action@beta` for all workflows. Fetch the latest documentation to determine the current recommended version and configuration options.
 
-### Quality Gate Templates
+#### PR Review (`pr-review.yml`)
+- **Trigger**: PR open/synchronize/reopen + issue comments containing `@claude`
+- Claude reviews the diff and leaves comments
+- Tools: `Read, Glob, Grep, Bash(git:*), Bash(gh:*)`
+- Max turns: ~10
+- Allow `@claude` mentions in PR comments for follow-up
 
-Use these as the basis for each workflow, adapting to the chosen platform and engine:
+#### Code Quality (`code-quality.yml`)
+- **Trigger**: Weekly (Sundays 8 AM UTC) + `workflow_dispatch`
+- Claude reviews random directories for code quality issues
+- Claude FIXES issues (not just reports) and creates a PR
+- Max turns: ~35
 
-#### PR Review
-- **Trigger**: PR open/sync/reopen
-- **Standard**: Run linter + formatter in check mode, run tests, report issues
-- **Claude Code**: Use claude-code-action to review diff, leave comments, suggest fixes
-- **Copilot**: Enable Copilot review + run linter/formatter as pre-check
+#### Dependency Audit (`dependency-audit.yml`)
+- **Trigger**: Biweekly (1st and 15th) + `workflow_dispatch`
+- Claude checks outdated/vulnerable dependencies
+- Claude conservatively updates packages, runs lint/test to verify
+- Creates a PR with updates if successful
+- Max turns: ~40
 
-#### Code Quality Sweep
-- **Trigger**: Weekly (Sundays 8 AM UTC) + manual
-- **Standard**: Run full lint/format check, create issue if problems found
-- **Claude Code**: Claude reviews random directories, creates PR with fixes
+#### Docs Sync (`docs-sync.yml`)
+- **Trigger**: Monthly (1st) + `workflow_dispatch`
+- Claude finds code changed in last 30 days
+- Checks if related docs are WRONG (not merely missing)
+- Creates a PR only if actual problems are found
+- Max turns: ~30
 
-#### Dependency Audit
-- **Trigger**: Biweekly (1st and 15th) + manual
-- **Standard**: Check outdated/vulnerable deps, create issue if found
-- **Claude Code**: Claude updates deps conservatively, runs tests, creates PR
+### GitHub Copilot Engine
 
-#### Docs Sync
-- **Trigger**: Monthly (1st) + manual
-- **Standard**: Find stale docs based on recent code changes, create issue
-- **Claude Code**: Claude checks if docs are wrong, creates PR with fixes
+#### PR Review (`pr-review.yml`)
+- **Trigger**: PR open/synchronize/reopen
+- Enable automatic Copilot review on PR open
+- Run the project's linter/formatter as a pre-check step
+- Copilot reviews the diff and leaves suggestions
 
-### Full Pipeline Templates
+#### Code Quality (`code-quality.yml`)
+- **Trigger**: Weekly (Sundays 8 AM UTC) + `workflow_dispatch`
+- Run full lint/format check across the codebase
+- Create a GitHub Issue if problems are found
 
-If the user chose "Full pipeline" scope, also generate:
+#### Dependency Audit (`dependency-audit.yml`)
+- **Trigger**: Biweekly (1st and 15th) + `workflow_dispatch`
+- Check for outdated/vulnerable deps using native tools
+- Create a GitHub Issue if issues are found
 
-#### Build & Test
-- **Trigger**: PR + push to main
-- **Steps**: Install deps → lint → type-check → test → build
-- Adapt all commands to the project's real tools
-
-#### Deploy (if applicable)
-- **Trigger**: Push to main (or tag)
-- Ask the user about their deployment target before generating
+#### Docs Sync (`docs-sync.yml`)
+- **Trigger**: Monthly (1st) + `workflow_dispatch`
+- Find stale docs based on recent code changes
+- Create a GitHub Issue listing stale docs
 
 ## Workflow Rules
 
 - All workflows must use the project's REAL commands, package manager, and runtime
-- Add manual trigger capability to all scheduled workflows
-- Use appropriate concurrency groups to avoid duplicate runs
-- Pin action/task versions (GitHub: `actions/checkout@v4`, Azure: `task@version`)
-- Do NOT hardcode API keys — always use platform secrets
-- Standard mode: create issues for findings (no API key needed)
-- Claude Code mode: can create PRs with fixes (requires ANTHROPIC_API_KEY)
-- Never generate workflows that duplicate existing CI/CD jobs — warn the user instead
+- Add `workflow_dispatch` to all scheduled workflows for manual trigger
+- Use appropriate `concurrency` groups to avoid duplicate runs
+- Pin action versions (e.g., `actions/checkout@v4`, `actions/setup-node@v4`)
+- Do NOT hardcode API keys — always use `${{ secrets.ANTHROPIC_API_KEY }}`
+- Claude Code mode: workflows create PRs with fixes
+- Copilot mode: PR review is native, other workflows create GitHub Issues
 
-## Phase 6: Summary
+## Phase 5: Summary
 
-When finished, display a summary table showing ALL available workflows — both generated and not generated — with a clear reason for each:
+Display a summary table showing ALL available workflows with their final status:
 
 ```
-AAD Workflows Summary ([platform], [engine] mode)
+AAD Workflows Summary (GitHub Actions, [engine] mode)
 
-| Workflow          | Status    | File                                    | Reason                                      |
-|-------------------|-----------|-----------------------------------------|----------------------------------------------|
-| PR Review         | ✓ Created | .github/workflows/pr-review.yml         |                                              |
-| Code Quality      | ✓ Created | .github/workflows/code-quality.yml      |                                              |
-| Dependency Audit  | — Skipped | .github/workflows/dependency-audit.yml  | Already exists                               |
-| Docs Sync         | — Skipped | —                                       | User declined workflow generation             |
-| Build & Test      | — Skipped | —                                       | Already covered by azure-pipelines.yml        |
-| Deploy            | — Skipped | —                                       | Scope: quality gates only (no deploy)         |
+| Workflow         | Status    | File                                   | Reason              |
+|------------------|-----------|----------------------------------------|----------------------|
+| PR Review        | ✓ Created | .github/workflows/pr-review.yml        |                      |
+| Code Quality     | ✓ Created | .github/workflows/code-quality.yml     |                      |
+| Dependency Audit | — Skipped | .github/workflows/dependency-audit.yml | Already exists       |
+| Docs Sync        | — Skipped | —                                      | Not selected by user |
 ```
 
 **Status values:**
 - `✓ Created` — file was generated
-- `✓ Updated` — existing file was merged/updated
 - `— Skipped` — not generated, with reason
 
-**Common skip reasons** (use the one that applies):
+**Skip reasons** (use the one that applies):
 - `Already exists` — file already present, not overwritten
-- `Already covered by [existing-file]` — existing CI/CD already handles this
-- `User declined workflow generation` — user said no
-- `Scope: quality gates only (no deploy)` — user chose quality gates scope
-- `Not applicable for [platform]` — workflow not supported on chosen platform
-- `Copilot handles this natively` — Copilot mode replaces this workflow
+- `Not selected by user` — user chose not to generate this workflow
 
 Then show next steps:
 
 ```
 Next steps:
   1. Review the generated workflows
-  2. Commit the workflow files
-  3. [Platform-specific activation instructions]
+  2. Commit the .github/workflows/ folder
+  3. Workflows will activate automatically on GitHub
 ```
