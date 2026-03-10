@@ -11,7 +11,7 @@ AAD analyzes your project's stack, conventions, and tooling, then generates tail
 | Type | Name | Description |
 |------|------|-------------|
 | Skill | `setup` | Detects your stack and generates all project configuration |
-| Skill | `workflows` | Generates GitHub Actions workflows (Claude Code or Copilot powered) |
+| Skill | `workflows` | Generates agentic GitHub Actions workflows (Claude Code or Copilot) |
 | Skill | `code-quality` | Runs a code quality analysis beyond what linters catch |
 | Skill | `pr-review` | Reviews a Pull Request with categorized findings |
 | Skill | `pr-summary` | Generates a structured PR summary |

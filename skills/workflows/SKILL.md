@@ -1,12 +1,22 @@
 ---
 name: workflows
-description: Generate GitHub Actions workflows powered by Claude Code or GitHub Copilot
+description: Generate agentic GitHub Actions workflows powered by Claude Code or GitHub Copilot
 disable-model-invocation: true
 ---
 
-# AAD Workflows — GitHub Actions Generator
+# AAD Workflows — Agentic GitHub Actions Generator
 
-You generate GitHub Actions workflows adapted to the current project's real stack and tools, powered by Claude Code or GitHub Copilot.
+You generate **agentic** GitHub Actions workflows — workflows where an AI agent (Claude or Copilot) receives a prompt, autonomously reads code, edits files, runs tests, and creates PRs. These are NOT basic CI scripts; they are multi-turn AI agents that run inside GitHub Actions.
+
+Both engines are fully agentic:
+
+| Aspect | Claude Code | GitHub Copilot (gh-aw) |
+|--------|-------------|------------------------|
+| Agent | Claude via `anthropics/claude-code-action` | Copilot via `gh-aw` |
+| Format | `.yml` with `prompt:` field | `.md` with Markdown prompt body |
+| Behavior | Multi-turn, reads/edits code, creates PRs | Multi-turn, reads/edits code, creates PRs |
+| Tools | Read, Write, Edit, Glob, Grep, Bash, Git | GitHub MCP, edit, bash, git |
+| Compilation | Runs directly as YAML | `.md` → `gh aw compile` → `.lock.yml` |
 
 **IMPORTANT**: This is an interactive flow. You MUST follow each phase in order and WAIT for the user's response before proceeding to the next phase. Do NOT generate any files until the user has made all their selections.
 
@@ -63,14 +73,18 @@ Classify each as **new** (no file in any format) or **skip** (file already exist
 **STOP and ask the user.** Present this prompt and WAIT for their response:
 
 ```
-How should the GitHub Actions workflows be powered?
+Both options generate agentic workflows where an AI agent autonomously
+reviews code, fixes issues, and creates PRs inside GitHub Actions.
 
-  1. Claude Code — Uses anthropics/claude-code-action for AI-powered review and fixes.
+Which AI engine should power the workflows?
+
+  1. Claude Code — Uses anthropics/claude-code-action@beta.
+     Format: .yml files with prompt: field.
      Requires: ANTHROPIC_API_KEY secret in your GitHub repo.
 
-  2. GitHub Copilot (Agentic Workflows) — Uses gh-aw with Copilot as the AI engine.
-     Requires: Copilot enabled for your organization/repo + gh-aw CLI.
-     Workflows are written in Markdown and compiled to .lock.yml files.
+  2. GitHub Copilot — Uses gh-aw (GitHub Agentic Workflows).
+     Format: .md files (Markdown + prompt) compiled to .lock.yml.
+     Requires: Copilot enabled for your org/repo + gh-aw CLI.
 
 Choose (1/2):
 ```
@@ -175,31 +189,28 @@ Which workflows do you want to generate? (e.g., "1,2,4" or "all new")
 
 Output to `.github/workflows/[name].yml`. Use `anthropics/claude-code-action@beta` for all workflows. Fetch the latest documentation to determine the current recommended version and configuration options.
 
+Each workflow uses the `prompt` field to give Claude detailed instructions. Claude then acts as an autonomous agent — reading code, making changes, running commands, and creating PRs.
+
 #### PR Review (`pr-review.yml`)
 - **Trigger**: PR open/synchronize/reopen + issue comments containing `@claude`
-- Claude reviews the diff and leaves comments
+- **Prompt**: Tell Claude to review the PR diff for bugs, security issues, and adherence to project conventions. Categorize findings as Critical / Warning / Suggestion. Leave actionable comments on specific lines.
 - Tools: `Read, Glob, Grep, Bash(git:*), Bash(gh:*)`
 - Max turns: ~10
 - Allow `@claude` mentions in PR comments for follow-up
 
 #### Code Quality (`code-quality.yml`)
 - **Trigger**: Weekly (Sundays 8 AM UTC) + `workflow_dispatch`
-- Claude reviews random directories for code quality issues
-- Claude FIXES issues (not just reports) and creates a PR
+- **Prompt**: Tell Claude to scan the codebase for issues linters miss (logic errors, security concerns, dead code, anti-patterns). FIX issues using the project's real tools, run lint/tests to verify, and create a PR with the fixes.
 - Max turns: ~35
 
 #### Dependency Audit (`dependency-audit.yml`)
 - **Trigger**: Biweekly (1st and 15th) + `workflow_dispatch`
-- Claude checks outdated/vulnerable dependencies
-- Claude conservatively updates packages, runs lint/test to verify
-- Creates a PR with updates if successful
+- **Prompt**: Tell Claude to check for outdated/vulnerable dependencies, conservatively update packages (patch/minor only), run lint/test after each update, revert if broken, and create a PR with a summary.
 - Max turns: ~40
 
 #### Docs Sync (`docs-sync.yml`)
 - **Trigger**: Monthly (1st) + `workflow_dispatch`
-- Claude finds code changed in last 30 days
-- Checks if related docs are WRONG (not merely missing)
-- Creates a PR only if actual problems are found
+- **Prompt**: Tell Claude to find code changed in the last 30 days, check if related docs are WRONG (not merely missing), fix genuinely broken documentation, and create a PR only if problems were found.
 - Max turns: ~30
 
 ---
