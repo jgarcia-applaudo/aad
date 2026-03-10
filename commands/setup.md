@@ -99,7 +99,7 @@ Present a summary of what was detected. Use the correct paths based on AGENT_TYP
 
 **If Claude Code:**
 
-```text
+```
 Detected stack:
   Language: [detected]
   Framework: [detected]
@@ -122,7 +122,7 @@ Confirm installation?
 
 **If Copilot:**
 
-```text
+```
 Detected stack:
   Language: [detected]
   Framework: [detected]
@@ -236,7 +236,18 @@ Use these `applyTo` patterns per skill type:
 
 ### 3.3 Settings and Hooks
 
-**If Claude Code** — generate `.claude/settings.json`:
+**If Claude Code** — generate `.claude/settings.json` with ALL applicable hooks from the table below:
+
+| Hook | Event | Matcher | Type | When to include |
+|------|-------|---------|------|-----------------|
+| Branch protection | PreToolUse | `Edit\|Write` | prompt | Always |
+| Auto-format | PostToolUse | `Edit\|Write` | command | Always (adapt to detected formatter) |
+| Auto-lint fix | PostToolUse | `Edit\|Write` | command | If linter supports auto-fix (ESLint --fix, Ruff --fix) |
+| Auto-install deps | PostToolUse | `Edit\|Write` | command | Always (detect package manager changes) |
+| Auto-run tests | PostToolUse | `Edit\|Write` | command | Always (run related tests when test files change) |
+| Type-check | PostToolUse | `Edit\|Write` | command | If project uses typed language (TypeScript, Python w/ mypy/pyright) |
+
+**Hook implementation reference** — adapt commands to the real project tools:
 
 ```json
 {
@@ -258,7 +269,28 @@ Use these `applyTo` patterns per skill type:
         "hooks": [
           {
             "type": "command",
-            "command": "[real project format command — e.g.: npx prettier --write $FILE or ruff format $FILE]. IMPORTANT: Use only relative paths or no paths at all. Never use absolute paths — the settings file must be portable across machines."
+            "command": "Auto-format hook. Filter $CLAUDE_FILE_PATHS by relevant extensions, then run the formatter. Examples by stack:\n  - JS/TS: if echo \"$CLAUDE_FILE_PATHS\" | grep -qE '\\.(js|ts|jsx|tsx)$'; then npx prettier --write $CLAUDE_FILE_PATHS 2>/dev/null; fi\n  - Python: if echo \"$CLAUDE_FILE_PATHS\" | grep -q '\\.py$'; then ruff format $CLAUDE_FILE_PATHS 2>/dev/null; fi\n  - Go: if echo \"$CLAUDE_FILE_PATHS\" | grep -q '\\.go$'; then gofmt -w $CLAUDE_FILE_PATHS 2>/dev/null; fi\n  - Rust: if echo \"$CLAUDE_FILE_PATHS\" | grep -q '\\.rs$'; then rustfmt $CLAUDE_FILE_PATHS 2>/dev/null; fi",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": "Auto-lint fix hook. Same filter pattern as formatter, then run linter with auto-fix. Examples:\n  - JS/TS: if echo \"$CLAUDE_FILE_PATHS\" | grep -qE '\\.(js|ts|jsx|tsx)$'; then npx eslint --fix $CLAUDE_FILE_PATHS 2>/dev/null; fi\n  - Python: if echo \"$CLAUDE_FILE_PATHS\" | grep -q '\\.py$'; then ruff check --fix $CLAUDE_FILE_PATHS 2>/dev/null; fi",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": "Auto-install deps hook. Detect if a dependency manifest changed, then reinstall. Examples:\n  - npm: if echo \"$CLAUDE_FILE_PATHS\" | grep -q 'package\\.json'; then npm install 2>/dev/null; fi\n  - Python: if echo \"$CLAUDE_FILE_PATHS\" | grep -q 'pyproject\\.toml\\|requirements.*\\.txt'; then pip install -e . 2>/dev/null || pip install -r requirements.txt 2>/dev/null; fi",
+            "timeout": 60000
+          },
+          {
+            "type": "command",
+            "command": "Auto-run tests hook. If a test file was edited, run only that test. Examples:\n  - Jest: if echo \"$CLAUDE_FILE_PATHS\" | grep -qE '\\.(test|spec)\\.(js|ts|jsx|tsx)$'; then npx jest --bail --findRelatedTests $CLAUDE_FILE_PATHS 2>/dev/null; fi\n  - Pytest: if echo \"$CLAUDE_FILE_PATHS\" | grep -qE 'test_.*\\.py$|.*_test\\.py$'; then python -m pytest $CLAUDE_FILE_PATHS --no-header -q 2>/dev/null; fi\n  - Go: if echo \"$CLAUDE_FILE_PATHS\" | grep -q '_test\\.go$'; then go test ./... 2>/dev/null; fi",
+            "timeout": 90000
+          },
+          {
+            "type": "command",
+            "command": "Type-check hook (only if applicable). Examples:\n  - TypeScript: if echo \"$CLAUDE_FILE_PATHS\" | grep -qE '\\.(ts|tsx)$'; then npx tsc --noEmit 2>/dev/null; fi\n  - Python (mypy): if echo \"$CLAUDE_FILE_PATHS\" | grep -q '\\.py$'; then mypy $CLAUDE_FILE_PATHS 2>/dev/null; fi",
+            "timeout": 30000
           }
         ]
       }
@@ -269,6 +301,15 @@ Use these `applyTo` patterns per skill type:
   }
 }
 ```
+
+**IMPORTANT**: The JSON above is a REFERENCE with all possible hooks. You must:
+
+1. Only include hooks relevant to the detected stack
+2. Replace the example commands with the project's REAL tools and commands
+3. Use only relative paths — never absolute paths
+4. Filter `$CLAUDE_FILE_PATHS` by the correct file extensions for the project
+5. If the project uses a combined tool (e.g., Biome for both format and lint), merge into a single hook
+6. Set appropriate timeouts: format/lint 30s, deps install 60s, tests 90s, type-check 30s
 
 If `.claude/settings.json` already exists, merge preserving existing hooks.
 
@@ -289,32 +330,141 @@ If `.claude/settings.json` already exists, merge preserving existing hooks.
 ```json
 {
   "type": "command",
-  "bash": "[real project format command detected in Phase 1 — e.g.: npx prettier --write \"$FILE\" or ruff format \"$FILE\"]",
+  "bash": "[real project format command — e.g.: npx prettier --write \"$FILE\" or ruff format \"$FILE\"]",
+  "timeoutSec": 30
+}
+```
+
+`auto-lint.json` (if linter supports auto-fix):
+
+```json
+{
+  "type": "command",
+  "bash": "[real project lint-fix command — e.g.: npx eslint --fix \"$FILE\" or ruff check --fix \"$FILE\"]",
   "timeoutSec": 30
 }
 ```
 
 If `.github/hooks/` already has files, merge preserving existing hooks.
 
-Adapt hooks to real tooling:
-
-- **Formatter**: Prettier, Biome, Ruff, gofmt, rustfmt — whichever the project uses
-- **Linter**: ESLint, Biome, Ruff, golangci-lint — whichever the project uses
-- **Tests**: The real runner with the correct execution flag
-- **Type checking**: tsc, mypy, pyright — if applicable
-
 ### 3.4 GitHub Workflows
 
 If `.github/` already exists in the project, **always generate** workflows in `.github/workflows/`. If `.github/` does not exist, ask the user whether to create it.
 
-Generate these workflows:
+If `.github/workflows/` already has files, **do not overwrite existing ones** — only create missing workflows.
 
-- **PR Review** — Automatically review PRs on open/sync
-- **Code Quality** — Weekly code quality sweep
-- **Dependency Audit** — Biweekly dependency audit
-- **Docs Sync** — Monthly documentation sync
+Generate these workflows, adapting all commands to the project's real stack:
 
-Each workflow must use the project's real commands. If `.github/workflows/` already has files, do not overwrite existing ones.
+#### 3.4.1 `pr-review.yml` — PR Code Review
+
+Triggered on PR open/synchronize/reopen. Runs the project's linter and formatter in check mode. Reports issues.
+
+```yaml
+name: PR Code Review
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Adapt jobs to the project's real tools:
+# - JS/TS: npm ci → npx eslint . → npx prettier --check .
+# - Python: pip install -e ".[dev]" → ruff check . → ruff format --check .
+# - Go: golangci-lint run → go vet ./...
+# - Rust: cargo clippy → cargo fmt -- --check
+#
+# Also include project-specific checks:
+# - If the project has migrations (Alembic, Prisma, etc.), check for conflicts
+# - If the project has TypeScript, run tsc --noEmit
+# - If the project has tests, run the test suite
+```
+
+#### 3.4.2 `code-quality.yml` — Scheduled Code Quality Sweep
+
+Runs weekly (e.g., Sundays 8 AM UTC). Performs a deep lint/format check across the codebase and creates a GitHub Issue if problems are found.
+
+```yaml
+name: Code Quality Sweep
+on:
+  schedule:
+    - cron: '0 8 * * 0'  # Every Sunday at 8 AM UTC
+  workflow_dispatch:
+
+# Steps:
+# 1. Checkout + setup language/runtime
+# 2. Install dependencies
+# 3. Run linter in check mode, capture output
+# 4. Run formatter in check mode, capture output
+# 5. If any issues found, create a GitHub Issue with:
+#    - Title: "Code Quality: [N] issues found on [date]"
+#    - Body: lint output + format output + suggested fixes
+# 6. If no issues, log success
+```
+
+#### 3.4.3 `dependency-audit.yml` — Biweekly Dependency Audit
+
+Runs 1st and 15th of each month. Checks for outdated dependencies and known vulnerabilities. Creates a GitHub Issue if any are found.
+
+```yaml
+name: Dependency Audit
+on:
+  schedule:
+    - cron: '0 10 1,15 * *'  # 1st and 15th at 10 AM UTC
+  workflow_dispatch:
+
+# Steps:
+# 1. Checkout + setup language/runtime
+# 2. Install dependencies
+# 3. Check for outdated packages:
+#    - npm: npm outdated --json
+#    - Python: pip list --outdated --format=json
+#    - Go: go list -u -m all
+# 4. Check for vulnerabilities:
+#    - npm: npm audit --json
+#    - Python: pip-audit --format=json (or safety check)
+#    - Go: govulncheck ./...
+# 5. If outdated or vulnerable, create a GitHub Issue with:
+#    - Vulnerability count and severity breakdown
+#    - List of outdated packages with current → latest versions
+#    - Recommended actions
+# 6. If clean, log success
+```
+
+#### 3.4.4 `docs-sync.yml` — Monthly Documentation Sync
+
+Runs 1st of each month. Identifies documentation that may be out of sync with recent code changes. Creates a GitHub Issue listing stale docs.
+
+```yaml
+name: Documentation Sync Check
+on:
+  schedule:
+    - cron: '0 9 1 * *'  # 1st of month at 9 AM UTC
+  workflow_dispatch:
+    inputs:
+      days_back:
+        description: 'Number of days to look back for changes'
+        default: '30'
+
+# Steps:
+# 1. Checkout with full history (fetch-depth: 0)
+# 2. Find source files changed in the last N days:
+#    git log --since="N days ago" --name-only --pretty=format: -- '*.py' '*.ts' '*.go' etc.
+#    Exclude test/spec files
+# 3. Find documentation files (README.md, docs/**, *.md)
+# 4. Compare modification dates: flag docs older than related source
+# 5. If stale docs found, create a GitHub Issue with:
+#    - List of potentially stale docs
+#    - The source files that changed recently
+#    - Suggestion to review and update
+# 6. If all docs are current, log success
+```
+
+**IMPORTANT workflow rules:**
+
+- All workflows must use the project's REAL commands, package manager, and runtime
+- Use `workflow_dispatch` on all scheduled workflows so they can also be triggered manually
+- Use appropriate `concurrency` groups to avoid duplicate runs
+- Pin action versions (e.g., `actions/checkout@v4`, `actions/setup-node@v4`)
+- Do NOT include API keys or secrets unless the project already uses them
+- Workflows should create GitHub Issues for findings, not PRs (simpler, no API key needed)
 
 ## Phase 4: Summary
 
@@ -322,7 +472,7 @@ When finished, display the appropriate summary based on AGENT_TYPE:
 
 **If Claude Code:**
 
-```text
+```
 AAD configured successfully:
 
   ✓ CLAUDE.md — [created/updated]
@@ -347,7 +497,7 @@ Next steps:
 
 **If Copilot:**
 
-```text
+```
 AAD configured successfully:
 
   ✓ .github/copilot-instructions.md — [created/updated]
