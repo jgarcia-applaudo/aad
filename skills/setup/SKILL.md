@@ -91,11 +91,25 @@ Before generating any file, check if the project config file already exists (bas
 - If `.github/hooks/` already exists — read existing hooks, merge without duplicating or overwriting
 - If `.github/instructions/*` already exist — list them, do not overwrite, ask whether to update
 
-In both cases: If `.github/workflows/*` already exist — do not overwrite existing ones.
+### 1.5 Check existing workflows
+
+Check if `.github/workflows/` exists and which of the 4 standard workflow files already exist:
+- `pr-review.yml`
+- `code-quality.yml`
+- `dependency-audit.yml`
+- `docs-sync.yml`
+
+Classify each as **new** (file doesn't exist) or **skip** (file already exists). This classification is used in Phase 2 and Phase 3.4.
 
 ## Phase 2: User Confirmation
 
-Present a summary of what was detected. Use the correct paths based on AGENT_TYPE:
+Present a summary of what was detected. Use the correct paths based on AGENT_TYPE.
+
+**Workflow section rules:**
+- List each of the 4 standard workflows individually, showing which are **new** (will be created) and which are **skip** (already exist)
+- If ALL 4 already exist, show them all as "skip" and do not ask about workflows
+- If ANY are new, ask the user whether to generate the missing ones
+- The user's choice only applies to **new** workflows — existing ones are never overwritten
 
 **If Claude Code:**
 
@@ -114,9 +128,13 @@ Files to be created:
   ✓ .claude/skills/[other relevant]/SKILL.md
   ✓ .claude/settings.json (new / merge with existing)
 
-  ? .github/workflows/ (generate CI/CD workflows?)
+GitHub workflows:
+  ✓ .github/workflows/pr-review.yml (new)
+  ✓ .github/workflows/code-quality.yml (new)
+  — .github/workflows/dependency-audit.yml (already exists, skip)
+  ✓ .github/workflows/docs-sync.yml (new)
 
-Confirm installation?
+Generate the 3 new workflows? (yes/no)
 ```
 
 **If Copilot:**
@@ -137,9 +155,13 @@ Files to be created:
   ✓ .github/hooks/branch-protection.json (new / merge with existing)
   ✓ .github/hooks/auto-format.json (new / merge with existing)
 
-  ? .github/workflows/ (generate CI/CD workflows?)
+GitHub workflows:
+  ✓ .github/workflows/pr-review.yml (new)
+  ✓ .github/workflows/code-quality.yml (new)
+  — .github/workflows/dependency-audit.yml (already exists, skip)
+  ✓ .github/workflows/docs-sync.yml (new)
 
-Confirm installation?
+Generate the 3 new workflows? (yes/no)
 ```
 
 Only ask about what you could NOT infer. If everything is clear, request a simple confirmation.
@@ -348,13 +370,12 @@ If `.github/hooks/` already has files, merge preserving existing hooks.
 
 ### 3.4 GitHub Workflows
 
-**Always ask the user**: "Would you like me to generate GitHub Actions workflows for CI/CD (code quality, dependency audit, docs sync, PR review)?"
+This step uses the classification from Phase 1.5 and the user's answer from Phase 2.
 
-- If the user says **yes** → generate all workflows listed below in `.github/workflows/`
-- If the user says **no** → skip this step entirely
-- If `.github/workflows/` already has files, **do not overwrite existing ones** — only create missing workflows
+- If the user said **no** to workflows → skip this step entirely
+- If the user said **yes** → generate only the workflows classified as **new** (do NOT overwrite existing files)
 
-Generate these workflows, adapting all commands to the project's real stack:
+Generate these workflows (only the new ones), adapting all commands to the project's real stack:
 
 #### 3.4.1 `pr-review.yml` — PR Code Review
 
