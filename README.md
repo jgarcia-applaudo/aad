@@ -46,7 +46,7 @@ Register the plugin in your VS Code settings:
 
 ```json
 {
-  "chat.plugins.paths": {
+  "chat.pluginLocations": {
     "~/.local/share/agent-plugins/aad": true
   }
 }
@@ -57,6 +57,38 @@ Or if published to a marketplace repository:
 ```bash
 copilot plugin install aad@applaudo/aad
 ```
+
+#### Windows + WSL
+
+If you develop inside WSL with VS Code and the **Remote - WSL** extension, follow these steps:
+
+1. Clone the plugin inside the WSL filesystem (not the Windows filesystem):
+
+   ```bash
+   git clone https://github.com/jgarcia-applaudo/aad.git ~/.local/share/agent-plugins/aad
+   ```
+
+2. Open VS Code settings for the **remote** environment — not the local Windows settings.
+   Use the command palette: `Preferences: Open Remote Settings (JSON)` and add:
+
+   ```json
+   {
+     "chat.pluginLocations": {
+       "~/.local/share/agent-plugins/aad": true
+     }
+   }
+   ```
+
+   > If you add this to your local (Windows) settings instead of Remote settings, VS Code will not find the plugin.
+
+3. Reload the VS Code window (`Developer: Reload Window`).
+
+**Known limitations in WSL:** There are active VS Code bugs that may affect skill loading:
+
+- Skills files located outside the current workspace may not load ([microsoft/vscode#292297](https://github.com/microsoft/vscode/issues/292297)).
+- Copilot Chat may become unresponsive after switching to a WSL remote ([microsoft/vscode#253610](https://github.com/microsoft/vscode/issues/253610)).
+
+If skills are not available after installation, try opening a workspace inside the WSL filesystem (e.g., `code .` from a WSL terminal) and reload the window.
 
 ### Update
 
