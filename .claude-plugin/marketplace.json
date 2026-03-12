@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "aad",
-      "source": "../",
+      "source": "./",
       "description": "Configures your AI coding agent as a development companion for any project, regardless of the stack.",
       "version": "1.0.0"
     }
