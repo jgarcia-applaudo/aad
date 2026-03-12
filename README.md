@@ -40,6 +40,28 @@ Inside Claude Code:
 /plugin install aad
 ```
 
+### GitHub Copilot CLI
+
+Install the plugin directly from the cloned directory:
+
+```bash
+copilot plugin install ~/.local/share/agent-plugins/aad
+```
+
+Verify the installation:
+
+```bash
+copilot plugin list
+```
+
+Skills will be available as slash commands (e.g., `/setup`, `/code-quality`) and agents via `/agent`.
+
+> **Note:** The CLI caches plugin components on install. After updating the plugin with `git pull`, reinstall it to pick up changes:
+>
+> ```bash
+> copilot plugin install ~/.local/share/agent-plugins/aad
+> ```
+
 ### GitHub Copilot (VS Code)
 
 Register the plugin in your VS Code settings:
@@ -571,7 +593,8 @@ aad/
 │   ├── marketplace.json          # Claude Code marketplace registration
 │   └── plugin.json               # Claude Code plugin manifest
 ├── .github/
-│   └── plugin.json               # GitHub Copilot plugin manifest
+│   └── plugin.json               # GitHub Copilot plugin manifest (VS Code)
+├── plugin.json                    # GitHub Copilot plugin manifest (CLI)
 ├── agents/
 │   ├── code-reviewer.agent.md    # Shared — works in both agents
 │   └── github-workflow.agent.md  # Shared — works in both agents
