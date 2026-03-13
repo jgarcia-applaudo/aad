@@ -27,6 +27,14 @@ AAD analyzes your project's stack, conventions, and tooling, then generates tail
 
 Clone the repo to a shared location:
 
+**Using SSH (recommended if you have SSH keys configured):**
+
+```bash
+git clone git@github.com:jgarcia-applaudo/aad.git ~/.local/share/agent-plugins/aad
+```
+
+**Using HTTPS:**
+
 ```bash
 git clone https://github.com/jgarcia-applaudo/aad.git ~/.local/share/agent-plugins/aad
 ```
@@ -87,6 +95,10 @@ If you develop inside WSL with VS Code and the **Remote - WSL** extension, follo
 1. Clone the plugin inside the WSL filesystem (not the Windows filesystem):
 
    ```bash
+   # SSH
+   git clone git@github.com:jgarcia-applaudo/aad.git ~/.local/share/agent-plugins/aad
+
+   # or HTTPS
    git clone https://github.com/jgarcia-applaudo/aad.git ~/.local/share/agent-plugins/aad
    ```
 
